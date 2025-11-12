@@ -72,50 +72,38 @@ A **FastAPI-based dashboard** to visualize Kafka data in real time.
 - WebSocket-based live updates (no refresh needed).
 
 **How to Run Dashboard:**
-```bash
+
 # Make sure Kafka is running and the producer is sending data
 # Then run:
 uvicorn kafka_dashboard:app --host 0.0.0.0 --port 8000 --reload
 Open your browser and visit:
 
 arduino
-Copy code
+
 http://localhost:8000
 You’ll see a real-time dashboard showing live Kafka data.
 
 How to Run the Project
 1️⃣ Start Kafka and Zookeeper
-bash
-Copy code
 docker compose up -d
 docker compose ps
 2️⃣ Create Kafka Topics
-bash
-Copy code
 docker compose exec kafka bash
 kafka-topics --bootstrap-server localhost:9092 --create --topic camera_telemetry --partitions 3 --replication-factor 1
 kafka-topics --bootstrap-server localhost:9092 --create --topic camera_events --partitions 3 --replication-factor 1
 kafka-topics --bootstrap-server localhost:9092 --create --topic video_metadata --partitions 3 --replication-factor 1
 exit
 3️⃣ Setup Python Environment
-bash
-Copy code
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 4️⃣ Run the Consumers (in separate terminals)
-bash
-Copy code
 python consumer_alerts.py
 python consumer_storage.py
 python consumer_analytics.py
 5️⃣ Run the Producer
-bash
-Copy code
 python producer_camera.py
 6️⃣ Run the Dashboard
-bash
-Copy code
 uvicorn kafka_dashboard:app --host 0.0.0.0 --port 8000 --reload
 Then open: http://localhost:8000
 
@@ -123,7 +111,6 @@ Testing the System
 You can send a manual test event:
 
 python
-Copy code
 import json, time
 from kafka import KafkaProducer
 
@@ -146,13 +133,11 @@ producer.close()
 print('Test event sent.')
 Run it:
 
-bash
-Copy code
+
 python test_send_event.py
 Expected output in consumer_alerts.py:
 
 makefile
-Copy code
 ALERT: Person at CAM_TEST_001 ts=1730000000 conf=0.95
 Common Issues and Solutions
 Issue	Cause	Solution
