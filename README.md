@@ -1,111 +1,129 @@
-CCTV Kafka Streaming Demo
-Author: Kuldeep Vighane
-Role: Cloud Operations Engineer
-Technology Stack: Python, Apache Kafka, Docker
-Project Overview
+# CCTV Kafka Streaming Demo
 
-This project is a demo implementation of a real-time data streaming system for CCTV camera alerts using Apache Kafka.
+**Author:** Kuldeep Vighane  
+**Role:** Cloud Operations Engineer  
+**Location:** Aurangabad, Maharashtra  
+📧 nishupvighane@gmail.com  
+
+---
+
+## Project Overview
+
+This project is a demo implementation of a real-time data streaming system for CCTV camera alerts using **Apache Kafka**.  
 The goal is to simulate how a CCTV manufacturer could process camera events, alerts, and video metadata in real time using Kafka as the message broker.
 
 No real cameras are used in this demo — instead, a Python script simulates camera devices sending messages to Kafka topics.
 
-Purpose of the Project
+---
+
+## Purpose of the Project
 
 The main purpose of this project is to:
 
-Understand how Apache Kafka handles real-time data streams.
+- Understand how **Apache Kafka** handles real-time data streams.  
+- Demonstrate **producer-consumer architecture** using Python.  
+- Simulate real-world use cases like **motion detection** and **person detection alerts**.  
+- Learn how multiple independent consumers can process different types of data from Kafka topics.  
 
-Demonstrate producer-consumer architecture using Python.
+---
 
-Simulate real-world use cases like motion detection and person detection alerts.
+## Components Implemented
 
-Learn how multiple independent consumers can process different types of data from Kafka topics.
+### 1️⃣ Kafka Setup (with Docker)
 
-Components Implemented
+Kafka and Zookeeper are started using **Docker Compose**.
 
-Kafka Setup (with Docker)
+**Kafka Topics:**
+- `camera_events`
+- `video_metadata`
+- `camera_telemetry`
 
-Kafka and Zookeeper are started using Docker Compose.
+---
 
-Three Kafka topics are created:
+### 2️⃣ Python Producer (`producer_camera.py`)
 
-camera_events
+- Simulates 10 virtual cameras.
+- Sends:
+  - Telemetry data (temperature, uptime, etc.)
+  - Random motion or AI detection events
+  - Metadata about recorded video clips
+- Publishes messages to Kafka topics in **JSON format**
 
-video_metadata
+---
 
-camera_telemetry
+### 3️⃣ Consumers
 
-Python Producer (producer_camera.py)
+| File | Description |
+|------|--------------|
+| **consumer_alerts.py** | Reads messages from `camera_events` and prints alerts when “person_detected” events are received with high confidence. |
+| **consumer_storage.py** | Reads `video_metadata` messages and stores them locally in a CSV file. |
+| **consumer_analytics.py** | Reads events from `camera_events` and counts events per minute per camera. |
 
-Simulates 10 virtual cameras.
+---
 
-Sends:
+### 4️⃣ Dashboard (`kafka_dashboard.py`)
 
-Telemetry data (temperature, uptime, etc.)
+A **FastAPI-based dashboard** to visualize Kafka data in real time.
 
-Random motion or AI detection events.
+**Features:**
+- Displays live logs of all events.
+- Shows temperature and telemetry charts.
+- Displays per-camera event counts and stored video count.
+- WebSocket-based live updates (no refresh needed).
 
-Metadata about recorded video clips.
+**How to Run Dashboard:**
+```bash
+# Make sure Kafka is running and the producer is sending data
+# Then run:
+uvicorn kafka_dashboard:app --host 0.0.0.0 --port 8000 --reload
+Open your browser and visit:
 
-Messages are published to Kafka topics in JSON format.
+arduino
+Copy code
+http://localhost:8000
+You’ll see a real-time dashboard showing live Kafka data.
 
-Consumers
-
-consumer_alerts.py
-Reads messages from camera_events topic and prints alerts when “person_detected” events are received with high confidence.
-
-consumer_storage.py
-Reads video metadata from video_metadata topic and stores it locally in a CSV file.
-
-consumer_analytics.py
-Reads events from camera_events and counts the number of events received per minute per camera.
-
-How to Run
-
-Start Kafka and Zookeeper
-
+How to Run the Project
+1️⃣ Start Kafka and Zookeeper
+bash
+Copy code
 docker compose up -d
-
-
-Verify containers:
-
 docker compose ps
-
-
-Create Kafka Topics
-
+2️⃣ Create Kafka Topics
+bash
+Copy code
 docker compose exec kafka bash
 kafka-topics --bootstrap-server localhost:9092 --create --topic camera_telemetry --partitions 3 --replication-factor 1
 kafka-topics --bootstrap-server localhost:9092 --create --topic camera_events --partitions 3 --replication-factor 1
 kafka-topics --bootstrap-server localhost:9092 --create --topic video_metadata --partitions 3 --replication-factor 1
 exit
-
-
-Setup Python Environment
-
+3️⃣ Setup Python Environment
+bash
+Copy code
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-
-
-Run the Consumers (in separate terminals)
-
+4️⃣ Run the Consumers (in separate terminals)
+bash
+Copy code
 python consumer_alerts.py
 python consumer_storage.py
 python consumer_analytics.py
-
-
-Run the Producer
-
+5️⃣ Run the Producer
+bash
+Copy code
 python producer_camera.py
-
-
-You will see alerts, metadata logs, and analytics outputs in the respective terminals.
+6️⃣ Run the Dashboard
+bash
+Copy code
+uvicorn kafka_dashboard:app --host 0.0.0.0 --port 8000 --reload
+Then open: http://localhost:8000
 
 Testing the System
+You can send a manual test event:
 
-To manually test the alert system, a demo script (test_send_event.py) can be used to send a sample “person_detected” event to Kafka:
-
+python
+Copy code
 import json, time
 from kafka import KafkaProducer
 
@@ -126,52 +144,24 @@ producer.send('camera_events', value=event)
 producer.flush()
 producer.close()
 print('Test event sent.')
-
-
 Run it:
 
+bash
+Copy code
 python test_send_event.py
-
-
 Expected output in consumer_alerts.py:
 
+makefile
+Copy code
 ALERT: Person at CAM_TEST_001 ts=1730000000 conf=0.95
-
-Errors Faced and Solutions
+Common Issues and Solutions
 Issue	Cause	Solution
-NoBrokersAvailable	Kafka not started or wrong port	Ensure Kafka container is running and port 9092 is accessible
-UnknownTopicOrPartitionError	Topics not created	Created topics manually inside Kafka container
-No alerts shown	Random events didn’t include person detection	Created test_send_event.py to send manual alert
-CSV file missing	Consumer started in wrong directory	Always run consumer_storage.py from project root
-Producer stopped unexpectedly	Interrupted manually (Ctrl+C)	Restart producer to continue generating messages
-Project Usability
-
-This project demonstrates:
-
-How Kafka handles real-time data streaming between multiple producers and consumers.
-
-How Python can be used for message-based processing.
-
-A basic structure similar to IoT or CCTV alert systems.
-
-It can be extended to:
-
-Add real camera integrations or APIs.
-
-Connect dashboards for live alert visualization.
-
-Use databases for metadata storage instead of CSV.
-
-Notes
-
-This is a simulation project — all camera data is randomly generated.
-
-No real camera devices are used or connected.
-
-It’s meant purely for educational and testing purposes.
+NoBrokersAvailable	Kafka not started or wrong port	Ensure Kafka container is running and port 9092 is open
+UnknownTopicOrPartitionError	Topic not created	Create topics manually inside Kafka container
+No alerts shown	Random data doesn’t include person_detected	Run test_send_event.py
+CSV file missing	Ran consumer_storage.py from wrong folder	Run from project root
 
 Author
-
 Kuldeep Vighane
 Cloud Operations Engineer
 📍 Aurangabad, Maharashtra
